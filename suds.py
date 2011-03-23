@@ -2,11 +2,13 @@
 import serial
 import time
 import sys
-import MySQLdb
-from datetime import datetime
 
 # Configuration #
 stallNames = ["South Stairwell - Far", "South Stairwell - Near", "South Vator - Far", "South Vator - Near"]
+
+south_stalls = {0: (1, 'South Stairwell - Far'), 1: (2, 'South Stairwell - Near'), 2: (3, 'South Vator - Far'), 3: (4, 'South Vator - Near')}
+north_stalls = {0: (5, 'North Vator - Far'), 1: (6, 'North Vator - Near'), 2: (7, 'North Stairwell - Far'), 3: (8, 'North Stairwell - Near')}
+
 server = ""
 username = ""
 password = ""
@@ -14,71 +16,54 @@ database = ""
 
 # Returns a map (from the stall number to it's status) of the stalls that have changed status
 def getChanged(line, prevStatuses):
-    changed = {}
-    statuses = line.rstrip().split(',')
-    for i in range(len(statuses)):
-        if (statuses[i] != "") and (len(prevStatuses) < len(statuses) or statuses[i] != prevStatuses[i]):
-            changed[i] = int(statuses[i])
-    prevStatuses = statuses
-    return (changed, prevStatuses)
-
-# Gets the id from the database for each stall by it's name
-def getStallIDs(stallNames):
-    stalls = {}
-    for i in range(len(stallNames)):
-        statement = """SELECT * FROM stalls WHERE name=\"%s\"""" % stallNames[i]
-        cursor.execute(statement)
-        results = cursor.fetchall()
-        if len(results) == 1:
-            stalls[i] = int(results[0][0]), stallNames[i]
-        else:
-            print ("Database error: %s not found") % stallNames[i]
-    return stalls
-
+	changed = {}
+	statuses = line.rstrip().split(',')
+	for i in range(len(statuses)):
+		if (statuses[i] != "") and (len(prevStatuses) < len(statuses) or statuses[i] != prevStatuses[i]):
+			changed[i] = int(statuses[i])
+	prevStatuses = statuses
+	return (changed, prevStatuses)
+	
 # Tells the arduino to set the number of stalls to read
 def setNumStalls(num):
-    time.sleep(1);
-    ser.write('s%d' % num)
+	time.sleep(1);
+	ser.write('s%d' % num)
 
-print str(datetime.strptime("21/11/06 16:30", "%d/%m/%y %H:%M")) + " - Starting suds"
-# Open serial connection
-port = sys.argv[1] if len(sys.argv) >= 2 else '/dev/ttyUSB1'
-ser = serial.Serial(port, timeout=1)
-print str(datetime.strptime("21/11/06 16:30", "%d/%m/%y %H:%M")) + " - Connected to arduino"
+if __name__ == '__main__':
+	# python suds.py <north | south> [USB device]
+	if len(sys.argv) < 2:
+		print 'useage: python suds.py <north | south> [USB device]'
+		exit()
+	
+	stalls = {}	
+	
+	side = sys.argv[1]
+	if side == 'north':
+		stalls = south_stalls
+	else:
+		stalls = north_stalls
+		
+	if len(sys.argv) == 2:
+		port = '/dev/ttyUSB0'
+	else:
+		port = sys.argv[2]
+	
+	# Open serial connection
+	ser = serial.Serial(port, timeout=1)
+	
+	newStatuses = {}
+	prevStatuses = {}	
 
-while True:
-    try:
-        # Open database connection
-        db = MySQLdb.connect(server, username, password, database)
-        print str(datetime.strptime("21/11/06 16:30", "%d/%m/%y %H:%M")) + " - Connected to database"
-        cursor = db.cursor()
-        newStatuses = {}
-        prevStatuses = {}
-        stalls = (getStallIDs(stallNames))
-        #time.sleep(1)
-        setNumStalls(len(stalls))
-        while True:
-            #print str(datetime.strptime("21/11/06 16:30", "%d/%m/%y %H:%M")) + " - SUDS Data:"
-            ser.write('p')
-            newStatuses, prevStatuses = getChanged(ser.readline(), prevStatuses)
-            for i in newStatuses.keys():
-                print(stalls[i][1], newStatuses[i])
-                # Prepare SQL query to INSERT a record into the database.
-                sql = """INSERT INTO log (stall_id, time, occupied) VALUES (%d, NOW(), %d);""" % (stalls[i][0], newStatuses[i])
-                try:
-                    # Execute the SQL command
-                    cursor.execute(sql)
-                    # Commit your changes in the database
-                    db.commit()
-                except:
-                    # Rollback in case there is any error
-                    print("database error occurred")
-                    db.rollback()   
-                #time.sleep(1)
-            #print "------------------------"
-    except:
-        print str(datetime.strptime("21/11/06 16:30", "%d/%m/%y %H:%M")) + " - ERROR connecting to database"
-        time.sleep(5)
-# close connections
-db.close()
-ser.close()
+	time.sleep(1)
+	setNumStalls(len(stalls))
+	
+	while True:
+		ser.write('p')
+		newStatuses, prevStatuses = getChanged(ser.readline(), prevStatuses)
+		for i in newStatuses.keys():
+			print(stalls[i][1], newStatuses[i])
+			# Prepare SQL query to INSERT a record into the database.
+			
+		time.sleep(1)
+	
+	ser.close()
