@@ -3,16 +3,13 @@ import serial
 import time
 import sys
 
+from socket import *
+
 # Configuration #
 stallNames = ["South Stairwell - Far", "South Stairwell - Near", "South Vator - Far", "South Vator - Near"]
 
 south_stalls = {0: (1, 'South Stairwell - Far'), 1: (2, 'South Stairwell - Near'), 2: (3, 'South Vator - Far'), 3: (4, 'South Vator - Near')}
 north_stalls = {0: (5, 'North Vator - Far'), 1: (6, 'North Vator - Near'), 2: (7, 'North Stairwell - Far'), 3: (8, 'North Stairwell - Near')}
-
-server = ""
-username = ""
-password = ""
-database = ""
 
 # Returns a map (from the stall number to it's status) of the stalls that have changed status
 def getChanged(line, prevStatuses):
@@ -48,6 +45,13 @@ if __name__ == '__main__':
 	else:
 		port = sys.argv[2]
 	
+	#connect to the server
+	HOST = '173.84.26.173'
+	PORT = 2233
+	addr = (HOST, PORT)
+	sock = socket(AF_INET, SOCK_STREAM)
+	sock.connect(addr)
+	
 	# Open serial connection
 	ser = serial.Serial(port, timeout=1)
 	
@@ -62,6 +66,7 @@ if __name__ == '__main__':
 		newStatuses, prevStatuses = getChanged(ser.readline(), prevStatuses)
 		for i in newStatuses.keys():
 			print(stalls[i][1], newStatuses[i])
+			sock.send(stalls[i][1], newStatuses[i])
 			# Prepare SQL query to INSERT a record into the database.
 			
 		time.sleep(1)
