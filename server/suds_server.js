@@ -50,6 +50,9 @@ var server = net.createServer(function(socket){
 			var stall = recv.stall
 			//console.log(recv);
 			stalls[id][stall]['status'] = recv['status'];
+			
+			var client_message = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
+			push_to_web_clients(client_message);
 			//console.log(stalls);
 			socket.write("ACK\n");			
 		}
@@ -60,7 +63,7 @@ var server = net.createServer(function(socket){
 			client_id = new Date().getTime();
 			//console.log(client_id);
 			web_clients.push({'client_id': client_id, 'sock': socket});
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected});
+			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
 			console.log(msg);
 			socket.write(msg);
 		}
@@ -91,7 +94,7 @@ var server = net.createServer(function(socket){
 			console.log('suds ended');
 			connected[suds_id] = false;
 			suds_id = null;
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected});
+			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
 			push_to_web_clients(msg);
 		}
 		
@@ -117,7 +120,7 @@ var server = net.createServer(function(socket){
 			stalls[suds_id] = {};
 			console.log(suds_id + " disconnected");
 			suds_id = null;		
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected});
+			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
 			push_to_web_clients(msg);
 		}
 		

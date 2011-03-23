@@ -47,11 +47,23 @@ socket.on('connection', function(client){
 	
 	suds.addListener('data', function(data){
 		console.log(data.toString());
-		var recv = JSON.parse(data.toString());
+		try
+		{
+			var recv = JSON.parse(data.toString());
+		}
+		catch(er)
+		{
+			console.log('malformed json');
+		}
 		
 		if(recv.opcode == 'suds_status')
 		{
 			status = recv;
+			send_to_all(recv);
+		}
+		else if(recv.opcode == 'update_stall')
+		{
+			console.log('update stall');
 			send_to_all(recv);
 		}
 	});

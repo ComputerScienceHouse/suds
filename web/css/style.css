@@ -1,0 +1,101 @@
+body {
+    margin: 50px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    font-family: Helvetica, Arial, "sans serif";
+    background: #efefef;
+}
+
+h1 {
+    margin: 0px 0px 10px 0px;
+    padding: 0px 0px 0px 0px;
+    font-size: 2em;
+    color: #2a5599;
+}
+
+#header {
+    margin: 0px auto 0px auto;
+    padding: 0px 0px 0px 0px;
+    width: 600px;
+    text-align: center;
+}
+
+.container {
+    margin: 0px auto 10px auto;
+    padding: 10px 10px 10px 10px;
+    width: 600px;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.container .stall-group .stall {
+	margin: 0px 0px 10px 0px;
+	padding: 10px 10px 10px 10px;
+	border-radius: 10px;
+    -moz-border-radius: 10px;
+	
+	color: #434343;
+}
+.vacant {
+	background: #b9ffb9;
+}
+
+.occupied {
+	background: #ff7171;
+}
+
+.now-playing {
+    margin: 0px 0px 0px 0px;
+    padding: 10px 10px 10px 10px;
+    background: #b9ffb9;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+}
+
+.queued-song {
+    margin: 0px 0px 10px 0px;
+    padding: 10px 10px 10px 10px;
+    background: #c6c8c6;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+}
+
+.enqueue_stream {
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+
+}
+
+.div-row {
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 10px 0px;
+    display: block;
+    position: relative;
+    clear: both;
+}
+
+    .div-row .label {
+        margin: 0px 0px 0px 0px;
+        padding: 0px 0px 0px 0px;
+        width: 150px;
+        position: relative;
+        float: left;
+        font-size: 1.2em;
+    }
+
+    .div-row .field {
+        margin: 0px 0px 0px 0px;
+        padding: 0px 0px 0px 0px;
+        width: 400px;
+        position: relative;
+        float: left;
+    }
+
+        .div-row .field input.text {
+            margin: 0px 0px 0px 0px;
+            padding: 0px 0px 0px 0px;
+            border: 1px solid #636363;
+            height: 25px;
+            font-size: 1.2em;
+        }
