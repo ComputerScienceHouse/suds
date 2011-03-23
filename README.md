@@ -2,7 +2,8 @@
 
 requirements
 ---
-* nodejs
+* nodejs (v0.4.3+)
+* python 2.6+
 
 server
 ---
