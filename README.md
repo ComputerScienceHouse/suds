@@ -1,4 +1,4 @@
-==CSH Shower Usage Detection System (SUDS)==
+*CSH Shower Usage Detection System (SUDS)*
 
 server
 ---
