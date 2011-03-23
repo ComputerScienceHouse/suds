@@ -1,5 +1,9 @@
 # CSH Shower Usage Detection System (SUDS)
 
+requirements
+---
+* nodejs
+
 server
 ---
 suds_server.js is the main server that the actual suds machines talk to. It is also responsible for serving requests to clients.
