@@ -1,5 +1,5 @@
 var http = require('http'),  
-    io = require('socket.io'),
+    io = require('./socket.io'),
 	net = require('net'); 
 
 Array.prototype.remove = function(from, to) {
