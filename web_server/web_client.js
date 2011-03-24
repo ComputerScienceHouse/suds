@@ -38,7 +38,7 @@ socket.on('connection', function(client){
    * Connection to SUDS server
    ***************************************************************/
 	
-	var suds = net.createConnection(2233, '129.21.40.130');
+	var suds = net.createConnection(2233, 'localhost');
 	suds.addListener('connect', function(){
 		var connect_message = JSON.stringify({'opcode': 'web_connect'});
 
