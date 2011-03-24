@@ -8,7 +8,7 @@ $(document).ready(function(){
 	};	
 	var username = null;
 
-	var socket = new io.Socket(null, {port: 8080, rememberTransport: false});
+	var socket = new io.Socket(null, {port: 8888, rememberTransport: false});
 	
 	$(function(){
 		socket.connect();

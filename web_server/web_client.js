@@ -19,7 +19,7 @@ server = http.createServer(function(req, res){
  res.end('<h1>Hello world</h1>'); 
 });
 
-server.listen(8080);
+server.listen(8888);
   
 // socket.io 
 var socket = io.listen(server); 
