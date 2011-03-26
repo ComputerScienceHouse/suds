@@ -3,6 +3,7 @@ import serial
 import time
 import sys
 import json
+from time import strftime
 
 from socket import *
 
@@ -70,7 +71,7 @@ if __name__ == '__main__':
 		newStatuses, prevStatuses = getChanged(ser.readline(), prevStatuses)
 		for i in newStatuses.keys():
 			update_stall = {'opcode': 'update_stall', 'suds_id': side, 'stall': stalls[i][0], 'status': newStatuses[i]}
-			print str(update_stall) + "------\n"
+			print strftime("%Y-%m-%d %H:%M:%S") + " - " + str(update_stall)
 			sock.send(json.dumps(update_stall, False, True))
 			sock.recv(buff);
 		time.sleep(1)
