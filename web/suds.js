@@ -21,65 +21,71 @@ $(document).ready(function(){
 	});
 	
 	socket.on('message', function(obj){
-		if(obj.opcode == 'suds_status')
+		//console.log(obj);h
+		switch(obj.opcode)
 		{
-			// create zone status table
-			/*var status_div = $('#suds-zones');
-			status_div.html('');
-			var table = $('<table></table>');
-			for(var i in obj['status'])
-			{
-				table.append('<tr><td id="'+i+'">' + i + '</td><td>' + obj['status'][i].toString() + '</td></tr>');
-			}	
-			
-			status_div.append(table);
-			*/
-			
-			var stalls = $('#stalls');
-			stalls.html('');
-			// create stall status table
-			for(var i in obj['stalls'])
-			{
-				var stalls_div = $('<div class="stall-group"></div>');
-				stalls_div.append('<h2>' + i + '</h2>');
-				if(Object.size(obj['stalls'][i]))
+			case "data_init":
+			case "stall_dump":
+				var stalls = $('#stalls');
+				stalls.html('');
+				// create stall status table
+				for(var i in obj['stalls'])
 				{
-					for(var j in obj['stalls'][i])
+					var stalls_div = $('<div class="stall-group"></div>');
+					stalls_div.append('<h2>' + i + '</h2>');
+					if(Object.size(obj['stalls'][i]))
 					{
-						var stall = $('<div class="stall">' + obj['stalls'][i][j]['name'] + '</div>');
-						if(obj['stalls'][i][j]['status'] == 0)
+						//console.log(i);
+						for(var j in obj['stalls'][i])
 						{
-							stall.addClass('vacant');
+							//console.log(j);
+							var stall = $('<div class="stall" id="' + i + '-' + obj['stalls'][i][j]['id'] + '">' + obj['stalls'][i][j]['name'] + '</div>');
+							if(obj['stalls'][i][j]['status'] == 0)
+							{
+								stall.addClass('vacant');
+							}
+							else
+							{
+								stall.addClass('occupied');
+							}
+							stalls_div.append(stall);
 						}
-						else
-						{
-							stall.addClass('occupied');
-						}
-						stalls_div.append(stall);
 					}
+					else
+					{
+						stalls_div.append('<i>Empty</i>');
+					}
+					stalls.append(stalls_div);
+
+				}
+				break;
+			case "update_stall":
+				//console.log(obj);
+				var stall = $('#' + obj.suds_id + '-' + obj.id);
+				stall.removeClass('vacant');
+				stall.removeClass('occupied');
+				if(obj.status == 1)
+				{
+					stall.addClass('occupied');
 				}
 				else
 				{
-					stalls_div.append('<i>Empty</i>');
+					stall.addClass('vacant');
 				}
-				stalls.append(stalls_div);
-				
-			}
+				break;
+			default:
+				break;
 		}
-		else if(obj.opcode == 'update_stall')
-		{
-			//console.log(obj);
-		}
-	});
+;	});
 
 	socket.on('connect', function(){ 
+		console.log('connected');
 		$.modal.close();
 		
 	});
 
 	socket.on('disconnect', function(){ 
 		console.log("disconnected");
-		
 		
 	});
 

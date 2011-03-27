@@ -48,13 +48,13 @@ if __name__ == '__main__':
 		port = sys.argv[2]
 	
 	#connect to the server
-	HOST = '129.21.49.139'
+	HOST = '129.21.50.15'
 	PORT = 2233
 	addr = (HOST, PORT)
 	sock = socket(AF_INET, SOCK_STREAM)
 	buff = 1024
 	sock.connect(addr)
-	connect_message = {'opcode': 'connect', 'suds_id': side, 'data': stalls}
+	connect_message = {'opcode': 'suds_connect', 'suds_id': side, 'data': stalls}
 	sock.send(json.dumps(connect_message, False, True))
 	
 	# Open serial connection

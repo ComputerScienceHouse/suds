@@ -3,7 +3,116 @@ var net = require('net');
 var stalls = {'south':{}, 'north': {}};
 var connected = {'south': false, 'north': false};
 
-var web_clients = new Array();
+var clients = new Array();
+var suds_clients = new Array();
+
+var server = net.createServer(function(socket){
+	var client_id = new Date().getTime();
+	var client_type = null;
+	
+	socket.addListener('connect', function(){
+		console.log(get_time() + " - " + socket.remoteAddress + " connected");
+		var msg = {'opcode': 'stall_dump', 'stalls': stalls};
+		//socket.write(JSON.stringify(ack_msg) + "\n");
+		
+		//var msg = {'opcode': "ACK"};
+		socket.write(JSON.stringify(msg) + "\n");
+		//console.log('foo');
+	});
+	
+	socket.addListener('data', function(data){
+		//console.log(data.toString());
+		var recv = data.toString();
+		recv = recv.replace("\\n", "");
+		try
+		{
+			
+			recv = JSON.parse(recv);
+			//console.log(recv);
+			//var ack_msg = {"opcode" : "ACK"};
+			switch(recv.opcode)
+			{
+				case "suds_connect":
+					console.log(get_time() + " - suds client connected"); 
+					suds_clients.push({'id' : client_id, 'socket': socket, 'suds_id': recv.suds_id});
+					//stalls[recv['suds_id']] = recv.data;
+					var tmp_stalls = [];
+
+					for(var i = 0; i < recv.data.length; i++)
+					{
+						tmp_stalls[i] = {'id': recv.data[i][0], 'name': recv.data[i][1], 'status': 0}; 
+						//console.log(tmp_stalls[i]);
+					}
+					
+					stalls[recv['suds_id']] = tmp_stalls;
+					
+					//console.log(stalls);
+					client_type = 'suds';
+					
+					var stall_dump = {'opcode': 'stall_dump', 'stalls': stalls};
+					send_to_clients(JSON.stringify(stall_dump) + "\n");
+					socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
+					break;
+				case "client_connect":
+					console.log(get_time() + " - client connected");
+					client_type = 'client';
+					clients.push({'id': client_id, 'socket': socket});
+					
+					break;
+				case "update_stall":
+					// recv a stall status update from a "suds-node"
+					console.log(get_time() + " - updating stall " + recv.suds_id + "-" + recv.stall + " to " + recv.status);
+					// update the DB here and publish to redis?
+					
+					//send update to all clients
+					var msg = {'opcode': 'update_stall', 'suds_id': recv.suds_id, 'id': recv.stall, 'status': recv.status};
+					send_to_clients(JSON.stringify(msg) + "\n");
+					socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
+					
+					break;
+				case "ACK":
+				case "ERR":
+					break;
+				default:
+					console.log(get_time() + ' - opcode not recognized');
+					socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
+			}
+			
+			
+		}
+		catch(e)
+		{
+			var err = {"opcode" : "ERR"};
+			socket.write(JSON.stringify(err) + "\n");
+			console.log(get_time() + " - " + e + ": " + data.toString());
+		}
+		
+	});
+	
+	socket.addListener('end', function(){
+		console.log(get_time() + ' - ' + client_type + ':' + client_id + ' disconnected (end)');
+		remove_client(client_type, client_id);
+
+	});
+	
+	socket.addListener('error', function(e){
+		console.log(get_time() + ' - ' + client_type + ':' + client_id + ' disconnected (error)');
+		remove_client(client_type, client_id);
+	});
+	
+});
+
+/**
+ * Web Server
+ */
+
+
+
+
+server.listen(2233);
+console.log(get_time() + ' - Server started');
+
+
 
 Array.prototype.remove = function(from, to) {
 	var rest = this.slice((to || from) + 1 || this.length);
@@ -11,132 +120,48 @@ Array.prototype.remove = function(from, to) {
 	return this.push.apply(this, rest);
 };
 
+function remove_client(client_type, id)
+{
+	if(client_type == 'suds')
+	{
+		
+		
+		for(var i = 0; i < suds_clients.length; i++)
+		{
+			if(suds_clients[i]['id'] == id)
+			{
+				stalls[suds_clients[i]['suds_id']] = {};
+				suds_clients.remove(i);
+			}
+		}
+		
+		var stall_dump = {'opcode': 'stall_dump', 'stalls': stalls};
+		send_to_clients(JSON.stringify(stall_dump) + "\n");
+	}
+	
+	if(client_type == 'client')
+	{
+		for(var i = 0; i < clients.length; i++)
+		{
+			if(clients[i]['id'] == id)
+			{
+				clients.remove(i);
+			}
+		}
+	}
+}
+
+function send_to_clients(message)
+{
+	console.log(get_time() + ' - sending to web  clients: ');
+	for(var i = 0; i < clients.length; i++)
+	{
+		console.log("\t" + clients[i]['id']);
+		clients[i]['socket'].write(message);
+	}
+}
+
 function get_time()
 {
 	return new Date().toUTCString();
 }
-
-var server = net.createServer(function(socket){
-	var suds_id = null;
-	var is_client = false;
-	var client_id;
-	
-	socket.addListener('connect', function(){
-		//socket.write('connected');
-		console.log(get_time() + " - " + socket.remoteAddress);
-	});
-	
-	socket.addListener('data', function(data){
-		var recv = JSON.parse(data.toString());
-		if(recv.opcode == 'connect')
-		{
-			connected[recv['suds_id']] = true;
-			suds_id = recv['suds_id'];
-			
-			for(var i = 0; i < recv.data.length; i++)
-			{
-				var d = recv['data'][i];
-				var info = {'name': d[1], 'status': 0};
-				stalls[recv['suds_id']][d[0]] = info;
-			}
-			
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected});
-			push_to_web_clients(msg);
-			
-			//console.log(stalls);
-			socket.write("ACK\n");
-		}
-		else if(recv.opcode == 'update_stall')
-		{
-			var id = recv.suds_id;
-			var stall = recv.stall
-			//console.log(recv);
-			stalls[id][stall]['status'] = recv['status'];
-			
-			var client_message = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
-			push_to_web_clients(client_message);
-			//console.log(stalls);
-			socket.write("ACK\n");			
-		}
-		else if(recv.opcode == 'web_connect')
-		{
-			console.log(get_time() + ' - web client connected');
-			is_client = true;
-			client_id = new Date().getTime();
-			//console.log(client_id);
-			web_clients.push({'client_id': client_id, 'sock': socket});
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
-			console.log(get_time() + ' - ' + msg);
-			socket.write(msg);
-		}
-		else
-		{
-			socket.write("BADACK\n");
-			console.log('')
-		}
-		
-	});
-	
-	socket.addListener('end', function(){
-		//console.log(get_time() + 'connection terminated');
-		// mark as disconnected
-		if(is_client == true)
-		{
-			console.log(get_time() + ' client connected ended');
-			for(var i = 0; i < web_clients.length; i++)
-			{
-				if(web_clients[i]['client_id'] == client_id)
-				{
-					web_clients.remove(i);
-				}
-			}
-		}
-		else
-		{
-			console.log(get_time() + ' - suds connection ended');
-			connected[suds_id] = false;
-			suds_id = null;
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
-			push_to_web_clients(msg);
-		}
-		
-	});
-	
-	socket.addListener('error', function(e){
-		// mark as disconnected
-		if(is_client == true)
-		{
-			console.log(get_time() + ' - client connection lost (error)');
-			for(var i = 0; i < web_clients.length; i++)
-			{
-				if(web_clients[i]['client_id'] == client_id)
-				{
-					web_clients.remove(i);
-				}
-			}
-		}
-		else
-		{
-			console.log(get_time() + ' - suds (' + suds_id + ') connection lost (error)');
-			connected[suds_id] = false;
-			stalls[suds_id] = {};
-			suds_id = null;		
-			var msg = JSON.stringify({'opcode': 'suds_status', 'status': connected, 'stalls': stalls});
-			push_to_web_clients(msg);
-		}
-		
-	});
-	
-	function push_to_web_clients(message)
-	{
-		console.log(get_time() + ' - sending to web  clients');
-		for(var i = 0; i < web_clients.length; i++)
-		{
-			console.log("\t" + web_clients[i]['client_id']);
-			web_clients[i]['sock'].write(message + "\n");
-		}
-	}
-});
-
-server.listen(2233);
-console.log(get_time() + ' - Server started');
