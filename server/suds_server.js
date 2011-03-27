@@ -6,6 +6,8 @@ var connected = {'south': false, 'north': false};
 var clients = new Array();
 var suds_clients = new Array();
 
+//emitter.setMaxListeners(200);
+
 var server = net.createServer(function(socket){
 	var client_id = new Date().getTime();
 	var client_type = null;
@@ -156,7 +158,7 @@ function send_to_clients(message)
 	console.log(get_time() + ' - sending to web  clients: ');
 	for(var i = 0; i < clients.length; i++)
 	{
-		console.log("\t" + clients[i]['id']);
+		//console.log("\t" + clients[i]['id']);
 		clients[i]['socket'].write(message);
 	}
 }
