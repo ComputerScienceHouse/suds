@@ -43,3 +43,8 @@ Opcodes
 				"suds_id": "south", 
 				"stall": 4, 
 			}
+
+- client_connect
+	Sent by a connecting client that is _not_ the suds hardware (e.g. the web_socket_server)
+	
+	Generates a client id and saves the socket connection to a list of clients.
