@@ -23,6 +23,7 @@ $(document).ready(function(){
 	
 	socket.on('message', function(obj){
 		console.log(obj);
+        console.log(JSON.stringify(obj));
 		switch(obj.opcode)
 		{
 			case "data_init":
