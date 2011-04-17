@@ -6,8 +6,8 @@ Opcodes
 - stall_dump
 	
 		{
-				"opcode" : "stall_dump",
-		  		"stalls" : { 
+			"opcode" : "stall_dump",
+			"stalls" : { 
 				"north" : [ 
 					{ 
 						"id" : 5,
