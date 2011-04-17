@@ -11,25 +11,25 @@ Opcodes
 	- suds_id: the id of the suds machine (north or south)
 	- data: the stalls in the specified location and their descriptions
 	
-		{ 
-			"opcode" : "suds_connect",
-		  	"suds_id" : "south"
-			"data" : [ 
-				[ 
-					1,
-		        	"South Stairwell - Far"
-		      	],[ 
-					2,
-		        	"South Stairwell - Near"
-		      	],[ 
-					3,
-		        	"South Vator - Far"
-		     	],[ 
-					4,
-		        	"South Vator - Near"
-		      	]
-		    ]
-		}
+			{ 
+				"opcode" : "suds_connect",
+			  	"suds_id" : "south"
+				"data" : [ 
+					[ 
+						1,
+			        	"South Stairwell - Far"
+			      	],[ 
+						2,
+			        	"South Stairwell - Near"
+			      	],[ 
+						3,
+			        	"South Vator - Far"
+			     	],[ 
+						4,
+			        	"South Vator - Near"
+			      	]
+			    ]
+			}
 		
 - update_stall
 	Sent by the suds hardware when a stall changes status
@@ -37,9 +37,9 @@ Opcodes
 	- status: 0 or 1 for open or closed
 	- stall: id of the stall
 	
-		{
-			"opcode": "update_stall"
-			"status": 0, 
-			"suds_id": "south", 
-			"stall": 4, 
-		}
+			{
+				"opcode": "update_stall"
+				"status": 0, 
+				"suds_id": "south", 
+				"stall": 4, 
+			}
