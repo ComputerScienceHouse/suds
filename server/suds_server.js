@@ -28,10 +28,7 @@ var server = net.createServer(function(socket){
 		recv = recv.replace("\\n", "");
 		try
 		{
-			console.log(recv);
 			recv = JSON.parse(recv);
-			//console.log(recv);
-			//var ack_msg = {"opcode" : "ACK"};
 			switch(recv.opcode)
 			{
 				case "suds_connect":
