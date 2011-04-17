@@ -48,3 +48,11 @@ Opcodes
 		        ]
 		    }
 		}
+
+- update_stall
+		
+		{
+			"opcode":"update_stall",
+			"suds_id":"south",
+			"id":1,"status":1
+		}
