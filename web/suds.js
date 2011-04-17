@@ -1,3 +1,4 @@
+
 $(document).ready(function(){
 	Object.size = function(obj) {
 	    var size = 0, key;

@@ -1,3 +1,11 @@
+/**
+ * web_socket_server.js
+ * 
+ * Web socket server to show SUDS status. Connects to the suds_server and 
+ * forwards statuses to web clients.
+ *
+ * @author Sean McGary <sean.mcgary@gmail.com>
+ */
 var http = require('http'),  
     io = require('./socket.io'),
 	net = require('net');
@@ -18,20 +26,20 @@ if(suds == null)
 		console.log(get_time() + ' - connected to suds');
 		var connect_msg = {'opcode': 'client_connect'};
 		suds.write(JSON.stringify(connect_msg) + "\n");
-	});
+	}); 
 
 	suds.on('data', function(data){
-		//console.log("recvd: " + data.toString());
 		var recv = data.toString();
 		recv = recv.replace("\\n", "");
 		try
 		{
 			recv = JSON.parse(recv);
-			//console.log(recv);
 			switch(recv.opcode)
 			{
 				case "update_stall":
-					console.log(get_time() + " - updating stall " + recv.suds_id + "-" + recv.stall + " to " + recv.status);
+					console.log(get_time() + " - updating stall " + recv.suds_id + "-" + recv.id + " to " + recv.status);
+					// update the stall status
+					update_stall_status(recv.suds_id, recv.id, recv.status);
 					// forward the update to all web clients
 					send_to_all(recv);
 					suds.write(JSON.stringify({'opcode': 'ACK'}));
@@ -39,8 +47,6 @@ if(suds == null)
 				case "stall_dump":
 					console.log(get_time() + " - got stall dump from server");
 					stalls = recv.stalls;
-					//console.log('-----');
-					//console.log(stalls);
 					send_to_all(recv);
 					suds.write(JSON.stringify({'opcode': 'ACK'}));
 					break;
@@ -85,7 +91,7 @@ web_socket.on('connection', function(socket){
 	console.log(get_time() + " - web: client connected");
 	var client_id = new Date().getTime();
 	web_clients.push({'client_id': client_id, 'socket': socket});
-	
+
 	var connect_msg  = {'opcode': 'data_init', 'stalls': stalls};
 	socket.send(connect_msg);
 	
@@ -114,11 +120,31 @@ function send_to_all(message_to_send)
 	}
 }
 
+/**
+ * Update the status of a stall in the stalls object
+ */
+function update_stall_status(suds_id, stall_id, status)
+{
+	for(var i = 0; i < stalls[suds_id].length; i++)
+	{
+		if(stalls[suds_id][i]['id'] == stall_id)
+		{
+			stalls[suds_id][i]['status'] = status;
+		}
+	}
+}
+
+/**
+ * Helper function to get a formatted time
+ */
 function get_time()
 {
 	return new Date().toUTCString();
 }
 
+/**
+ * Remove an object from an array and update the indexes
+ */
 Array.prototype.remove = function(from, to) {
 	var rest = this.slice((to || from) + 1 || this.length);
 	this.length = from < 0 ? this.length + from : from;
