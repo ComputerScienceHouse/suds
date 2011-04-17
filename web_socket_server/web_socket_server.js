@@ -33,9 +33,7 @@ if(suds == null)
 		recv = recv.replace("\\n", "");
 		try
 		{
-			console.log(recv);
 			recv = JSON.parse(recv);
-			
 			switch(recv.opcode)
 			{
 				case "update_stall":
