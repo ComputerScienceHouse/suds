@@ -65,7 +65,7 @@ var server = net.createServer(function(socket){
 					// recv a stall status update from a "suds-node"
 					console.log(get_time() + " - updating stall " + recv.suds_id + "-" + recv.stall + " to " + recv.status);
 					// update the DB here and publish to redis?
-					
+					update_stall(recv.suds_id, recv.stall, recv.status);
 					//send update to all clients
 					var msg = {'opcode': 'update_stall', 'suds_id': recv.suds_id, 'id': recv.stall, 'status': recv.status};
 					send_to_clients(JSON.stringify(msg) + "\n");
@@ -121,6 +121,18 @@ Array.prototype.remove = function(from, to) {
 	this.length = from < 0 ? this.length + from : from;
 	return this.push.apply(this, rest);
 };
+
+function update_stall(suds_id, stall_id, status)
+{
+	console.log('updating stall: ' + suds_id + ", " + stall_id + ", " + status);
+	for(var i = 0; i < stalls[suds_id].length; i++)
+	{
+		if(stalls[suds_id][i]['id'] == stall_id)
+		{
+			stalls[suds_id][i]['status'] = status;
+		}
+	}
+}
 
 function remove_client(client_type, id)
 {

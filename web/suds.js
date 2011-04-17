@@ -21,7 +21,7 @@ $(document).ready(function(){
 	});
 	
 	socket.on('message', function(obj){
-		//console.log(obj);h
+		console.log(obj);
 		switch(obj.opcode)
 		{
 			case "data_init":
