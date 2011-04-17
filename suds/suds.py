@@ -31,7 +31,7 @@ def setNumStalls(num):
 if __name__ == '__main__':
 	# python suds.py <north | south> [USB device]
 	if len(sys.argv) < 2:
-		print 'useage: python suds.py <north | south> [USB device]'
+		print 'useage: python suds.py <north | south> [[USB device], [suds_server hostname]]'
 		exit()
 	
 	stalls = {}	
@@ -46,9 +46,15 @@ if __name__ == '__main__':
 		port = '/dev/ttyUSB0'
 	else:
 		port = sys.argv[2]
+		
+	if len(sys.argv) == 3:
+		suds_server = '129.21.49.139'
+	else:
+		suds_server - sys.argv[3]
+	
 	
 	#connect to the server
-	HOST = '129.21.49.139'
+	HOST = suds_server
 	PORT = 2233
 	addr = (HOST, PORT)
 	sock = socket(AF_INET, SOCK_STREAM)
