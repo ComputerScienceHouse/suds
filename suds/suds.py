@@ -48,7 +48,7 @@ if __name__ == '__main__':
 		port = sys.argv[2]
 	
 	#connect to the server
-	HOST = '129.21.50.15'
+	HOST = '129.21.49.139'
 	PORT = 2233
 	addr = (HOST, PORT)
 	sock = socket(AF_INET, SOCK_STREAM)
