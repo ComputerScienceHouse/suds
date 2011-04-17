@@ -4,7 +4,10 @@ SUDS Web Socket Client
 Opcodes
 ---
 - stall_dump
-	
+	- stalls: object containing the north and south stalls
+	- id: stall id
+	- name: name/description of the stall
+	- status: 0 or 1 for open or closed
 		{
 			"opcode" : "stall_dump",
 			"stalls" : { 
@@ -49,10 +52,14 @@ Opcodes
 		    }
 		}
 
-- update_stall
+- update_stall 
+	- suds_id: will be either "north" or "south"
+	- id: id of the stall
+	- status: 0 or 1 for open or closed
 		
 		{
 			"opcode":"update_stall",
 			"suds_id":"south",
-			"id":1,"status":1
+			"id":1,
+			"status":1
 		}
