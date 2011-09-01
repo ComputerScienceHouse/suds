@@ -15,71 +15,72 @@ north_stalls = ((5, 'North Vator - Far'), (6, 'North Vator - Near'), (7, 'North 
 
 # Returns a map (from the stall number to it's status) of the stalls that have changed status
 def getChanged(line, prevStatuses):
-	changed = {}
-	statuses = line.rstrip().split(',')
-	for i in range(len(statuses)):
-		if (statuses[i] != "") and (len(prevStatuses) < len(statuses) or statuses[i] != prevStatuses[i]):
-			changed[i] = int(statuses[i])
-	prevStatuses = statuses
-	return (changed, prevStatuses)
-	
+    changed = {}
+    statuses = line.rstrip().split(',')
+    for i in range(len(statuses)):
+        if (statuses[i] != "") and (len(prevStatuses) < len(statuses) or statuses[i] != prevStatuses[i]):
+            changed[i] = int(statuses[i])
+    prevStatuses = statuses
+    return (changed, prevStatuses)
+    
 # Tells the arduino to set the number of stalls to read
 def setNumStalls(num):
-	time.sleep(1);
-	ser.write('s%d' % num)
+    time.sleep(1);
+    ser.write('s%d' % num)
 
 if __name__ == '__main__':
-	# python suds.py <north | south> [USB device]
-	if len(sys.argv) < 2:
-		print 'useage: python suds.py <north | south> [[USB device], [suds_server hostname]]'
-		exit()
-	
-	stalls = {}	
-	
-	side = sys.argv[1]
-	if side == 'north':
-		stalls = north_stalls
-	else:
-		stalls = south_stalls
-		
-	if len(sys.argv) == 2:
-		port = '/dev/ttyUSB0'
-	else:
-		port = sys.argv[2]
-		
-	if len(sys.argv) == 3:
-		suds_server = '129.21.49.139'
-	else:
-		suds_server - sys.argv[3]
-	
-	
-	#connect to the server
-	HOST = suds_server
-	PORT = 2233
-	addr = (HOST, PORT)
-	sock = socket(AF_INET, SOCK_STREAM)
-	buff = 1024
-	sock.connect(addr)
-	connect_message = {'opcode': 'suds_connect', 'suds_id': side, 'data': stalls}
-	sock.send(json.dumps(connect_message, False, True))
-	
-	# Open serial connection
-	ser = serial.Serial(port, timeout = 1)
-	
-	newStatuses = {}
-	prevStatuses = {}	
+    # python suds.py <north | south> [USB device]
+    if len(sys.argv) < 2:
+        print 'useage: python suds.py <north | south> [[USB device], [suds_server hostname]]'
+        exit()
+    
+    stalls = {}    
+    
+    side = sys.argv[1]
+    if side == 'north':
+        stalls = north_stalls
+    else:
+        stalls = south_stalls
 
-	time.sleep(1)
-	setNumStalls(len(stalls))
-	
-	while True:
-		ser.write('p')
-		newStatuses, prevStatuses = getChanged(ser.readline(), prevStatuses)
-		for i in newStatuses.keys():
-			update_stall = {'opcode': 'update_stall', 'suds_id': side, 'stall': stalls[i][0], 'status': newStatuses[i]}
-			print strftime("%Y-%m-%d %H:%M:%S") + " - " + str(update_stall)
-			sock.send(json.dumps(update_stall, False, True))
-			sock.recv(buff);
-		time.sleep(1)
-	
-	ser.close()
+    if len(sys.argv) == 3:
+        port = '/dev/ttyUSB0'
+    else:
+        port = sys.argv[2]
+        
+    if len(sys.argv) == 4:
+        suds_server = sys.argv[3]
+    else:
+        suds_server = '129.21.50.15'
+    
+    
+    #connect to the server
+    HOST = suds_server
+    PORT = 2233
+    addr = (HOST, PORT)
+    sock = socket(AF_INET, SOCK_STREAM)
+    buff = 1024
+    sock.connect(addr)
+    #print sock.recv(buff)
+    connect_message = {'opcode': 'suds_connect', 'suds_id': side, 'data': stalls}
+    sock.send(json.dumps(connect_message, False, True))
+    sock.recv(buff) 
+    # Open serial connection
+    ser = serial.Serial(port, timeout = 1)
+    
+    newStatuses = {}
+    prevStatuses = {}    
+
+    time.sleep(1)
+    setNumStalls(len(stalls))
+    
+    while True:
+        ser.write('p')
+        newStatuses, prevStatuses = getChanged(ser.readline(), prevStatuses)
+        for i in newStatuses.keys():
+            update_stall = {'opcode': 'update_stall', 'suds_id': side, 'stall': stalls[i][0], 'status': newStatuses[i]}
+            print strftime("%Y-%m-%d %H:%M:%S") + " - " + str(update_stall)
+            sock.send(json.dumps(update_stall, False, True))
+            sock.recv(buff);
+        time.sleep(1)
+    
+    ser.close()

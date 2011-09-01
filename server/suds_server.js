@@ -6,8 +6,6 @@ var connected = {'south': false, 'north': false};
 var clients = new Array();
 var suds_clients = new Array();
 
-//emitter.setMaxListeners(200);
-
 var server = net.createServer(function(socket){
 	var client_id = new Date().getTime();
 	var client_type = null;
@@ -15,15 +13,11 @@ var server = net.createServer(function(socket){
 	socket.addListener('connect', function(){
 		console.log(get_time() + " - " + socket.remoteAddress + " connected");
 		var msg = {'opcode': 'stall_dump', 'stalls': stalls};
-		//socket.write(JSON.stringify(ack_msg) + "\n");
-		
-		//var msg = {'opcode': "ACK"};
+
 		socket.write(JSON.stringify(msg) + "\n");
-		//console.log('foo');
 	});
 	
 	socket.addListener('data', function(data){
-		//console.log(data.toString());
 		var recv = data.toString();
 		recv = recv.replace("\\n", "");
 		try
@@ -44,8 +38,7 @@ var server = net.createServer(function(socket){
 					}
 					
 					stalls[recv['suds_id']] = tmp_stalls;
-					
-					//console.log(stalls);
+
 					client_type = 'suds';
 					
 					var stall_dump = {'opcode': 'stall_dump', 'stalls': stalls};

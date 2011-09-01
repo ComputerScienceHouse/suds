@@ -1,0 +1,6 @@
+#!/bin/sh
+
+npm install socket.io
+npm install express
+npm install socket.io-client
+npm install colors
