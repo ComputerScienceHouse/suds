@@ -9,18 +9,20 @@ $(document).ready(function(){
 	};	
 	var username = null;
 
-	var socket = new io.Socket(null, {port: 8888, rememberTransport: false});
-	
-	$(function(){
-		socket.connect();
-		$("#connecting_modal").modal({
-		    opacity:50,
-		    overlayCss: {backgroundColor:"#7f7f7f"},
-		    overlayClose:true,
-			position: ['20%', '40%']
-		});
-	});
-	
+	var socket = io.connect('http://soap-south.csh.rit.edu:8080');
+
+    $("#connecting_modal").modal({
+        opacity:50,
+        overlayCss: {backgroundColor:"#7f7f7f"},
+        overlayClose:true,
+        position: ['20%', '40%']
+    });
+
+    socket.on('stall_dump', function(data){
+        console.log(data);
+    });
+
+    /*
 	socket.on('message', function(obj){
 		console.log(obj);
         console.log(JSON.stringify(obj));
@@ -78,7 +80,7 @@ $(document).ready(function(){
 			default:
 				break;
 		}
-;	});
+	});*/
 
 	socket.on('connect', function(){ 
 		console.log('connected');

@@ -40,13 +40,15 @@ var socket_handler = {
 
         var stall_dump = {'opcode': 'stall_dump', 'stalls': stalls};
 
+        io.sockets.in('suds').emit('stall_dump', {stalls: stalls});
+
         socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
     },
     client_connect: function(socket, conn, recv){
         console.log('client connect');
     },
     update_stall: function(socket, conn, recv){
-        sys.puts(get_time().green + ' - ' + ('Updating stall ' + get_stall_by_id(recv.suds_id, recv.stall).name + ' to ' + recv.status).yellow);
+        sys.puts(get_time().green + ' - ' + ('Updating stall ' + get_stall_by_id(recv.suds_id, recv.stall).name + ' to ' + recv.status).cyan);
 
         //update stall status
         update_stall_status(recv.suds_id, recv.stall, recv.status);
@@ -64,24 +66,6 @@ var socket_handler = {
         console.log('ERR');
     }
 };
-
-function update_stall_status(side, id, status){
-    for(var i = 0; i < stalls[side].length; i++){
-        if(stalls[side][i].id == id){
-            stalls[side][i].status = status;
-        }
-    }
-}
-
-function get_stall_by_id(side, id){
-    var side = stalls[side];
-
-    for(var i = 0; i < side.length; i++){
-        if(side[i].id == id){
-            return side[i];
-        }
-    }
-}
 
 // Setup TCP server
 var server = net.createServer(function(socket){
@@ -112,37 +96,96 @@ var server = net.createServer(function(socket){
             //socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
 
         } catch(err){
-            sys.puts(get_time().red + ' - ' + err.red);
+            sys.puts(get_time().red + ' - ' + err);
 			socket.write(JSON.stringify({"opcode" : "ERR"}) + "\n");
         }
     });
 
     socket.on('end', function(){
-
+        sys.puts(get_time().green + ' - ' + (conn.client_type + ':' + conn.client_id + ' disconnected (end)').yellow);
+        remove_client(conn.client_type, conn.client_id);
     });
 
     socket.on('error', function(){
-
+        sys.puts(get_time().red + ' - ' + (conn.client_type + ':' + conn.client_id + ' disconnected (end)').yellow);
+        remove_client(conn.client_type, conn.client_id);
     });
 });
 
 server.listen(2233);
 
-/*
+
 // Setup websocket server
 var app = express.createServer();
 io = io.listen(app);
 app.listen(8080);
 
 io.sockets.on('connection', function(socket){
-     
+    socket.join('suds');
+
+    socket.emit('stall_dump', {stalls: stalls});
+
 });
-*/
+
+
 /**
  * Helper functions
  */
+
+function update_stall_status(side, id, status){
+    for(var i = 0; i < stalls[side].length; i++){
+        if(stalls[side][i].id == id){
+            stalls[side][i].status = status;
+        }
+    }
+}
+
+function get_stall_by_id(side, id){
+    var side = stalls[side];
+
+    for(var i = 0; i < side.length; i++){
+        if(side[i].id == id){
+            return side[i];
+        }
+    }
+}
+
 function get_time(){
 	return new Date().toUTCString();
+}
+
+Array.prototype.remove = function(from, to) {
+	var rest = this.slice((to || from) + 1 || this.length);
+	this.length = from < 0 ? this.length + from : from;
+	return this.push.apply(this, rest);
+};
+
+function remove_client(client_type, id)
+{
+	if(client_type == 'suds')
+	{
+		for(var i = 0; i < suds_clients.length; i++)
+		{
+			if(suds_clients[i]['id'] == id)
+			{
+				stalls[suds_clients[i]['suds_id']] = {};
+				suds_clients.remove(i);
+			}
+		}
+
+		var stall_dump = {'opcode': 'stall_dump', 'stalls': stalls};
+	}
+
+	if(client_type == 'client')
+	{
+		for(var i = 0; i < clients.length; i++)
+		{
+			if(clients[i]['id'] == id)
+			{
+				clients.remove(i);
+			}
+		}
+	}
 }
 
 

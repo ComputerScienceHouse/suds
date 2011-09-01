@@ -7,7 +7,7 @@
  * @author Sean McGary <sean.mcgary@gmail.com>
  */
 var http = require('http'),  
-    io = require('./socket.io'),
+    io = require('socket.io'),
 	net = require('net');
 
 // map of stalls for north and south side
