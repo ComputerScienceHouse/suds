@@ -40,7 +40,7 @@ var socket_handler = {
 
         var stall_dump = {'opcode': 'stall_dump', 'stalls': stalls};
 
-        io.sockets.in('suds').emit('stall_dump', {stalls: stalls});
+        io.sockets['in']('suds').emit('stall_dump', {stalls: stalls});
 
         socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
     },
@@ -56,6 +56,8 @@ var socket_handler = {
         // TODO - log updates to database
 
         // TODO - broadcast changes to all clients
+        var msg = {'suds_id': recv.suds_id, 'id': recv.stall, 'status': recv.status};
+        io.sockets['in']('suds').emit('update_stall', msg);
 
         socket.write(JSON.stringify({'opcode': 'ACK'}) + "\n");
     },
